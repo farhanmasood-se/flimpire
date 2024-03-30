@@ -1,19 +1,23 @@
-/* eslint-disable */
-import { Routes, Route } from 'react-router-dom';
+import React, { useRef } from 'react';
 import { CssBaseline } from '@mui/material';
+import { Routes, Route } from 'react-router-dom';
 
 import useStyles from './styles';
+import useAlan from './Alan';
 
 import {
-  Actors,
-  MoviesInformation,
   Movies,
+  Actors,
+  MovieInformation,
   Navbar,
   Profile,
-} from './components';
+} from './components/index';
 
 const App = () => {
   const classes = useStyles();
+  const alanBtnContainer = useRef();
+
+  useAlan();
 
   return (
     <div className={classes.root}>
@@ -22,12 +26,14 @@ const App = () => {
       <main className={classes.content}>
         <div className={classes.toolbar} />
         <Routes>
-          <Route path='/' element={<Movies />} />
-          <Route path='/movie/:id' element={<MoviesInformation />} />
-          <Route path='/actors/:id' element={<Actors />} />
-          <Route path='/profile/:id' element={<Profile />} />
+          <Route exact path="/" element={<Movies />} />
+          <Route exact path="/approved" element={<Movies />} />
+          <Route exact path="/movie/:id" element={<MovieInformation />} />
+          <Route exact path="/actors/:id" element={<Actors />} />
+          <Route exact path="/profile/:id" element={<Profile />} />
         </Routes>
       </main>
+      <div ref={alanBtnContainer} />
     </div>
   );
 };

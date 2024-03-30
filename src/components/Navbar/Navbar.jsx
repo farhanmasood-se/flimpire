@@ -18,12 +18,12 @@ import { useTheme } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setUser } from '../../features/auth';
-import { fetchToken, createSessionId, moviesApi } from '../../utils/index';
 import useStyles from './styles';
 import Search from '../Search/Search';
 import Sidebar from '../Sidebar/Sidebar';
-// import { ColorModeContext } from '../../utils/ToggleColorMode';
+import { setUser } from '../../features/auth';
+import { fetchToken, createSessionId, moviesApi } from '../../utils/index';
+import { ColorModeContext } from '../../utils/ToggleColorMode';
 
 const Navbar = () => {
   const classes = useStyles();
@@ -33,7 +33,7 @@ const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // const colorMode = useContext(ColorModeContext);
+  const colorMode = useContext(ColorModeContext);
 
   const token = localStorage.getItem('request_token');
   const sessionIdFromLocalStorage = localStorage.getItem('session_id');
@@ -77,7 +77,7 @@ const Navbar = () => {
           <IconButton
             color="inherit"
             sx={{ ml: 1 }}
-            // onClick={colorMode.toggleColorMode}
+            onClick={colorMode.toggleColorMode}
           >
             {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
           </IconButton>

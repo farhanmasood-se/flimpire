@@ -1,14 +1,31 @@
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { Typography, Button, Box } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 import { ExitToApp } from '@mui/icons-material';
+import { useSelector } from 'react-redux';
 
-import { userSelector } from '../../features/auth';
+import { useGetListQuery } from '../../services/TMDB';
+import RatedCards from '../RatedCards/RatedCards';
 
 const Profile = () => {
-  const { user } = useSelector(userSelector);
+  const { user } = useSelector((state) => state.user);
+  const { data: favoriteMovies, refetch: refetchFavorites } = useGetListQuery({
+    listName: 'favorite/movies',
+    accountId: user.id,
+    sessionId: localStorage.getItem('session_id'),
+    page: 1,
+  });
+  const { data: watchlistMovies, refetch: refetchWatchlisted } =
+    useGetListQuery({
+      listName: 'watchlist/movies',
+      accountId: user.id,
+      sessionId: localStorage.getItem('session_id'),
+      page: 1,
+    });
 
-  const favouriteMovies = [];
+  useEffect(() => {
+    refetchFavorites();
+    refetchWatchlisted();
+  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -18,20 +35,22 @@ const Profile = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between">
-        <Typography varian="h4" gutterBottom>
-          {' '}
+        <Typography variant="h4" gutterBottom>
           My Profile
         </Typography>
         <Button color="inherit" onClick={logout}>
           Logout &nbsp; <ExitToApp />
         </Button>
       </Box>
-      {!favouriteMovies.length ? (
+      {!favoriteMovies?.results?.length && !watchlistMovies?.results?.length ? (
         <Typography variant="h5">
-          Add favourites or watchlist some movies to see them here!
+          Add favourite or watchlist same movies to see them here!
         </Typography>
       ) : (
-        <Box>Favourite Movies</Box>
+        <Box>
+          <RatedCards title="Favorite Movies" movies={favoriteMovies} />
+          <RatedCards title="Watchlist" movies={watchlistMovies} />
+        </Box>
       )}
     </Box>
   );
