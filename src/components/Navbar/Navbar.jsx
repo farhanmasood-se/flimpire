@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   AppBar,
   IconButton,
@@ -16,25 +15,58 @@ import {
   Brightness7,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { setUser } from '../../features/auth';
+import { fetchToken, createSessionId, moviesApi } from '../../utils/index';
 import useStyles from './styles';
+import Search from '../Search/Search';
 import Sidebar from '../Sidebar/Sidebar';
+// import { ColorModeContext } from '../../utils/ToggleColorMode';
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const classes = useStyles();
   const isMobile = useMediaQuery('(max-width:600px)');
   const theme = useTheme();
-  const isAuthenticated = true;
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector((state) => state.user);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // const colorMode = useContext(ColorModeContext);
+
+  const token = localStorage.getItem('request_token');
+  const sessionIdFromLocalStorage = localStorage.getItem('session_id');
+
+  useEffect(() => {
+    const logInUser = async () => {
+      if (token) {
+        if (sessionIdFromLocalStorage) {
+          const { data: userData } = await moviesApi.get(
+            `/account?session_id=${sessionIdFromLocalStorage}`,
+          );
+          dispatch(setUser(userData));
+        } else {
+          const sessionId = await createSessionId();
+          const { data: userData } = await moviesApi.get(
+            `/account?session_id=${sessionId}`,
+          );
+          dispatch(setUser(userData));
+        }
+      }
+    };
+
+    logInUser();
+  }, [token]);
 
   return (
     <>
-      <AppBar>
+      <AppBar position="fixed">
         <Toolbar className={classes.toolbar}>
           {isMobile && (
             <IconButton
-              color='inherit'
-              edge='start'
+              color="inherit"
+              edge="start"
               style={{ outline: 'none' }}
               onClick={() => setMobileOpen((prevMobileOpen) => !prevMobileOpen)}
               className={classes.menuButton}
@@ -43,46 +75,43 @@ const Navbar = () => {
             </IconButton>
           )}
           <IconButton
-            color='inherit'
-            sx={{
-              ml: 1,
-            }}
-            onClick={() => {}}
+            color="inherit"
+            sx={{ ml: 1 }}
+            // onClick={colorMode.toggleColorMode}
           >
             {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
-          {!isMobile && 'Search...'}
+          {!isMobile && <Search />}
           <div>
             {!isAuthenticated ? (
-              <Button color='inherit' onClick={() => {}}>
+              <Button color="inherit" onClick={fetchToken}>
                 Login &nbsp; <AccountCircle />
               </Button>
             ) : (
               <Button
-                color='inherit'
+                color="inherit"
                 component={Link}
-                to='/profile/:id'
+                to={`/profile/${user.id}`}
                 className={classes.linkButton}
-                onClick={() => {}}
               >
-                {isMobile && <>My Movies &nbsp;</>}
+                {!isMobile && <>My Movies &nbsp;</>}
                 <Avatar
                   style={{ width: 30, height: 30 }}
-                  alt='Profile'
-                  src=''
+                  alt="Profile"
+                  src={`https://www.themoviedb.org/t/p/w64_and_h64_face${user?.avatar?.tmdb?.avatar?.avatar_path}`}
                 />
               </Button>
             )}
           </div>
-          {isMobile && 'Search...'}
+          {isMobile && <Search />}
         </Toolbar>
       </AppBar>
       <div>
         <nav className={classes.drawer}>
           {isMobile ? (
             <Drawer
-              variant='temporary'
-              anchor='right'
+              variant="temporary"
+              anchor="left"
               open={mobileOpen}
               onClose={() => setMobileOpen((prevMobileOpen) => !prevMobileOpen)}
               classes={{ paper: classes.drawerPaper }}
@@ -93,7 +122,7 @@ const Navbar = () => {
           ) : (
             <Drawer
               classes={{ paper: classes.drawerPaper }}
-              variant='permanent'
+              variant="permanent"
               open
             >
               <Sidebar setMobileOpen={setMobileOpen} />
